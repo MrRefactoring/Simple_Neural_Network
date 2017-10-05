@@ -54,7 +54,6 @@ class Neural:
             image = Image.open(image_directory).convert("L").point(self.__bw_filter_jpg(254))
         else:
             image = Image.open(image_directory).convert("L").point(self.__bw_filter(50))
-        #image = Image.open(image_directory).convert("L").point(self.__bw_filter(50))
         return self.__square(np.asarray(image))
 
     @staticmethod
