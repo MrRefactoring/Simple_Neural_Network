@@ -1,6 +1,4 @@
 from neural import Neural
-from mnist import MNIST
-
 
 if __name__ == "__main__":
     neural = Neural()
@@ -24,4 +22,6 @@ if __name__ == "__main__":
     print("accuracy {}".format(valid / total * 100))'''
     print(neural.analyze("samples/on.png"))
     print(neural.analyze("samples/one.png"))
-    print(neural.analyze("samples/seven.png"))
+    print(neural.analyze("samples/seven-3.jpg"))
+    print(neural.analyze("samples/eleve.jpg"))
+    print(neural.analyze("samples/four.Png"))

@@ -6,7 +6,7 @@ from mnist import MNIST
 
 class Neural:
     def __init__(self):
-        self.frame = (500, 500)
+        self.frame = (700, 700)  # 500 на 500
         self.coefficients = np.ones((10, 784), np.float32) - .99
 
     def analyze(self, image_directory):
@@ -18,13 +18,13 @@ class Neural:
         image = self.__preprocessor(image_directory)  # Загружаем картинку
 
         for i in range(len(results)):
-            results[i] = np.maximum(np.sum(np.dot(self.coefficients[i], image)), 0)
+            results[i] = np.sum(np.dot(self.coefficients[i], image))
         return np.argmax(results)
 
     def analyze_mnist(self, image):
         results = np.zeros(10, np.float32)
         for i in range(len(results)):
-            results[i] = np.maximum(np.sum(np.dot(self.coefficients[i], image)), 0)
+            results[i] = np.sum(np.dot(self.coefficients[i], image))
         return np.argmax(results)
 
     def antiravel(self, image):
@@ -50,7 +50,11 @@ class Neural:
         :return: возвращает плоский numpy array
         """
         # Читаем картинку из файла в image, после чего пропускаем ее через ЧБ фильтр
-        image = Image.open(image_directory).convert("L").point(self.__bw_filter(1))
+        if image_directory[-3:].lower() == "jpg":
+            image = Image.open(image_directory).convert("L").point(self.__bw_filter_jpg(254))
+        else:
+            image = Image.open(image_directory).convert("L").point(self.__bw_filter(50))
+        #image = Image.open(image_directory).convert("L").point(self.__bw_filter(50))
         return self.__square(np.asarray(image))
 
     @staticmethod
@@ -60,7 +64,19 @@ class Neural:
         :return: возвращает ф-ю, которая вызываестся внутри PIL
         """
         def table_gen(x):
-            return 0 if x < threshold else 1
+            return 0 if x < threshold else 255
+        return table_gen
+
+    @staticmethod
+    def __bw_filter_jpg(threshold=127):  # Черно-белый фильтр с порогом threshold для изображений формата JPG
+        """
+        :param threshold: пороговое значение, после которого выставляется белый цвет
+        :return: возвращает ф-ю, которая вызываестся внутри PIL
+        """
+
+        def table_gen(x):
+            return 255 if x < threshold else 0
+
         return table_gen
 
     @staticmethod
@@ -68,6 +84,47 @@ class Neural:
         for i in range(len(array)):
             array[i] = np.array(array[i], np.float32) / 255
         return array
+
+    def __cut(self, image):
+        sp = []
+        ep = []
+        flag = False
+        for i in range(len(image)):
+            for j in range(len(image[i])):
+                if image[i][j] > 0:
+                    sp.append(i)
+                    flag = True
+                    break
+            if flag:
+                break
+        flag = False
+        for i in list(range(len(image)))[::-1]:
+            for j in list(range(len(image[i])))[::-1]:
+                if image[i][j] > 0:
+                    ep.append(i)
+                    flag = True
+                    break
+            if flag:
+                break
+        for i in range(len(image[0])):
+            if self.get_vertical(image, i):
+                sp.append(i)
+                break
+        for i in list(range(len(image[0])))[::-1]:
+            if self.get_vertical(image, i):
+                ep.append(i)
+                break
+        cv2.imshow("", image[sp[0]:ep[0], sp[1]:ep[1]])
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        return image[sp[0]:ep[0], sp[1]:ep[1]]
+
+    @staticmethod
+    def get_vertical(image, index):
+        for i in range(len(image)):
+            if image[i][index] > 0:
+                return True
+        return False
 
     def __square(self, image):
         """
@@ -77,22 +134,18 @@ class Neural:
         :param image: numpy массив, картинка
         :return: image as 784 1D array
         """
-        if len(image) == len(image[0]):  # Если изображение уже квадратное
-            if len(image) == 28:  # Если изображение уже 28x28 пикселей
-                return image.ravel()  # Возвращаем плоский массив
-            else:
-                return cv2.resize(image, (28, 28)).ravel()  # Делаем resize картинки и возвращаем ее
-        else:
-            max_side_size = max(len(image), len(image[0]))  # Ищем максимально большую сторону
-            # Создаем новую картинку разммером max_size x max_side
-            new_image = np.zeros((max_side_size + self.frame[0], max_side_size + self.frame[1]), np.float32)
-            vertical_indent = (max_side_size - len(image) + self.frame[0]) // 2  # Находим вертикальный отступ
-            horizontal_indent = (max_side_size - len(image[0]) + self.frame[1]) // 2  # Находим горизонтальный отступ
-            # Преобразовываем картинку под нужный формат
-            for i in range(len(image)):
-                for j in range(len(image[i])):
-                    new_image[i + vertical_indent][j + horizontal_indent] = image[i][j]
-            cv2.imshow("Image", cv2.resize(new_image, (28, 28)))
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
-            return cv2.resize(new_image, (28, 28)).ravel()  # Делаем resize новой картинки и возвращаем ее
+        image = self.__cut(image)
+        max_side_size = int(max(len(image), len(image[0])) * 1.5)  # Ищем максимально большую сторону
+        # Создаем новую картинку разммером max_size x max_side
+        new_image = np.zeros((max_side_size, max_side_size), np.float32)
+        vertical_indent = (max_side_size - len(image)) // 2  # Находим вертикальный отступ
+        horizontal_indent = (max_side_size - len(image[0])) // 2  # Находим горизонтальный отступ
+        # Преобразовываем картинку под нужный формат
+        for i in range(len(image)):
+            for j in range(len(image[i])):
+                new_image[i + vertical_indent][j + horizontal_indent] = image[i][j]
+        #print(cv2.resize(new_image, (28, 28)).tolist())
+        cv2.imshow("Image", cv2.resize(new_image, (28, 28)))
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        return cv2.resize(new_image, (28, 28)).ravel()  # Делаем resize новой картинки и возвращаем ее
