@@ -1,3 +1,8 @@
-# Simple_Neural_Network
-## test
-    python converter.py
+# Запуск и работа с нейросетью
+## Начало работы:
+Для начала необходимо установить следующие библеотеки:<br>
+● Numpy<br>
+● OpenCv<br>
+● Python-mnist<br>
+Выполяем команды:
+    pip3 install numpy
