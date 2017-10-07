@@ -4,10 +4,8 @@
 Выполяем команды:<br>
     ```
     pip3 install numpy
-    ```<br>
-    ```
+    <br>
     pip3 install opencv-python
-    ```<br>
-    ```
+    <br>
     pip3 install python-mnist
     ```<br>
