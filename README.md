@@ -4,5 +4,5 @@
 ● Numpy<br>
 ● OpenCv<br>
 ● Python-mnist<br>
-Выполяем команды:
+Выполяем команды:<br>
     pip3 install numpy
