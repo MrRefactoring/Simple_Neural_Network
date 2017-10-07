@@ -2,10 +2,7 @@
 ## Начало работы:
 Для начала необходимо установить следующие библеотеки: ```Numpy```, ```OpenCv```, ```Python-mnist```
 Выполяем команды:<br>
-    ```
+
     pip3 install numpy
-    \n
     pip3 install opencv-python
-    \n
     pip3 install python-mnist
-    ```<br>
